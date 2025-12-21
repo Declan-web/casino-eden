@@ -1,13 +1,4 @@
 <!DOCTYPE html>
-<!--
-Created using JS Bin
-http://jsbin.com
-
-Copyright (c) 2025 by anonymous (http://jsbin.com/xiquhamuxa/1/edit)
-
-Released under the MIT license: http://jsbin.mit-license.org
--->
-<meta name="robots" content="noindex">
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -63,9 +54,8 @@ Released under the MIT license: http://jsbin.mit-license.org
             margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 15px;
         }
         
-        /* 추가된 복사 박스 영역 디자인 */
         .quick-copy-area {
-            display: none; /* 포커일 때만 자바스크립트로 표시 */
+            display: none; 
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-bottom: 30px;
@@ -101,7 +91,17 @@ Released under the MIT license: http://jsbin.mit-license.org
         }
         .copy-box-btn:hover { background: var(--main-red); }
 
-        input[type="number"] { padding: 10px; width: 60px; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; text-align: center; }
+        /* 숫자 입력창 화살표 제거 설정 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { 
+            -moz-appearance: textfield;
+            padding: 10px; width: 60px; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; text-align: center; 
+        }
+
         .shuffle-btn { padding: 12px 30px; background: var(--main-red); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .poker-settle-btn { padding: 12px 30px; background: var(--accent-green); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: none; }
         .clear-btn { padding: 12px 30px; background: #444; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
@@ -183,7 +183,6 @@ Released under the MIT license: http://jsbin.mit-license.org
 </div>
 
 <script>
-    /* 로직 코드는 유지하되 UI 업데이트 함수에 복사 박스 제어 추가 */
     let currentGame = 'HI-LO';
     let players = [];
     let currentDeck = [];
@@ -240,7 +239,6 @@ Released under the MIT license: http://jsbin.mit-license.org
         document.querySelectorAll('.btn-game').forEach(b => b.classList.remove('active'));
         document.getElementById(`btn-${currentGame}`).classList.add('active');
         
-        // 포커 전용 UI 제어 (복사 박스 포함)
         const isPoker = (currentGame === 'POKER');
         document.getElementById('pokerSettleBtn').style.display = isPoker ? 'inline-block' : 'none';
         document.getElementById('pokerAction').style.display = isPoker ? 'block' : 'none';
@@ -258,12 +256,10 @@ Released under the MIT license: http://jsbin.mit-license.org
         renderBoard();
     }
 
-    /* 추가된 상용구 복사 함수 */
     function copyPhrase(id) {
         const text = document.getElementById(id).innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("복사되었습니다: " + text);
-        });
+        navigator.clipboard.writeText(text);
+        // alert 제거 완료
     }
 
     function createShuffledDeck() {
@@ -373,7 +369,11 @@ Released under the MIT license: http://jsbin.mit-license.org
         } else { initPlayers(); }
     }
 
-    function copyWinner() { navigator.clipboard.writeText(winnerTextMemory).then(() => alert("결과가 복사되었습니다!")); }
+    function copyWinner() { 
+        navigator.clipboard.writeText(winnerTextMemory);
+        // alert 제거 완료
+    }
+    
     function toggleRoundFold(pIdx, rIdx) {
         const state = !players[pIdx].pokerFolds[rIdx];
         for(let i = rIdx; i < 4; i++) { players[pIdx].pokerFolds[i] = state; }
@@ -381,7 +381,10 @@ Released under the MIT license: http://jsbin.mit-license.org
     }
     function updateBet(pIdx, rIdx, val) { players[pIdx].pokerBets[rIdx] = parseInt(val) || 0; saveState(); }
     function updateName(idx, name) { players[idx].name = name; saveState(); }
-    function copyText(id) { navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert("복사 완료!")); }
+    function copyText(id) { 
+        navigator.clipboard.writeText(document.getElementById(id).innerText);
+        // alert 제거 완료
+    }
     function createCardHTML(c) { return `<div class="card ${c.isRed?'red':''}"><div class="card-rank">${c.rank}</div><div class="card-suit">${c.suit}</div></div>`; }
 
     function analyzeHand(cards) {
