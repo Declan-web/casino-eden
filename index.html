@@ -91,7 +91,6 @@
         }
         .copy-box-btn:hover { background: var(--main-red); }
 
-        /* 숫자 입력창 화살표 제거 설정 */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -259,7 +258,6 @@
     function copyPhrase(id) {
         const text = document.getElementById(id).innerText;
         navigator.clipboard.writeText(text);
-        // alert 제거 완료
     }
 
     function createShuffledDeck() {
@@ -340,13 +338,16 @@
         });
         if (candidates.length === 0) return alert("최종 생존자가 없습니다.");
         candidates.sort((a, b) => (b.hand.score - a.hand.score) || (b.hand.highRank - a.hand.highRank) || (b.hand.highSuit - a.hand.highSuit));
+        
         winnerId = candidates[0].idx;
         const winnerFinalProfit = totalPot - candidates[0].spent;
+        const handName = candidates[0].hand.name;
+        
         let lossTexts = [];
         playerLosses.forEach((l, idx) => {
             if (idx !== winnerId) { lossTexts.push(`${l.name}은 ${l.amount.toLocaleString()} 칩`); }
         });
-        winnerTextMemory = `${candidates[0].name} 𝐖𝐈𝐍! ${winnerFinalProfit.toLocaleString()} 칩 추가해 주세요.\n${lossTexts.join(', ')}을 각각 차감해 주세요.`;
+        winnerTextMemory = `${candidates[0].name} 𝐖𝐈𝐍! (${handName}) ${winnerFinalProfit.toLocaleString()} 칩 추가해 주세요.\n${lossTexts.join(', ')}을 각각 차감해 주세요.`;
         document.getElementById('winnerResultFullText').innerText = winnerTextMemory;
         document.getElementById('winnerDisplayBox').style.display = 'flex';
         saveState(); renderBoard();
@@ -371,7 +372,6 @@
 
     function copyWinner() { 
         navigator.clipboard.writeText(winnerTextMemory);
-        // alert 제거 완료
     }
     
     function toggleRoundFold(pIdx, rIdx) {
@@ -383,7 +383,6 @@
     function updateName(idx, name) { players[idx].name = name; saveState(); }
     function copyText(id) { 
         navigator.clipboard.writeText(document.getElementById(id).innerText);
-        // alert 제거 완료
     }
     function createCardHTML(c) { return `<div class="card ${c.isRed?'red':''}"><div class="card-rank">${c.rank}</div><div class="card-suit">${c.suit}</div></div>`; }
 
@@ -402,17 +401,17 @@
             if (uniqueRanks[i] - uniqueRanks[i+4] === 4) { isStraight = true; straightHigh = uniqueRanks[i]; break; }
         }
         if (!isStraight && [14, 5, 4, 3, 2].every(v => rMap[v])) { isStraight = true; straightHigh = 5; }
-        if (isFlush && isStraight) return { score: 10, highRank: straightHigh, highSuit: suitValues[flushSuit] };
+        if (isFlush && isStraight) return { score: 10, name: "스트레이트 플러쉬", highRank: straightHigh, highSuit: suitValues[flushSuit] };
         let counts = Object.values(rMap).sort((a, b) => b - a);
-        if (counts[0] === 4) return { score: 9, highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 4)), highSuit: 4 };
-        if (counts[0] === 3 && counts[1] >= 2) return { score: 8, highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 3)), highSuit: 4 };
-        if (isFlush) return { score: 7, highRank: rVals[0], highSuit: suitValues[flushSuit] };
-        if (isStraight) return { score: 4, highRank: straightHigh, highSuit: 4 };
-        if (counts[0] === 3) return { score: 3, highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 3)), highSuit: 4 };
+        if (counts[0] === 4) return { score: 9, name: "포카드", highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 4)), highSuit: 4 };
+        if (counts[0] === 3 && counts[1] >= 2) return { score: 8, name: "풀하우스", highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 3)), highSuit: 4 };
+        if (isFlush) return { score: 7, name: "플러쉬", highRank: rVals[0], highSuit: suitValues[flushSuit] };
+        if (isStraight) return { score: 4, name: "스트레이트", highRank: straightHigh, highSuit: 4 };
+        if (counts[0] === 3) return { score: 3, name: "트리플", highRank: parseInt(Object.keys(rMap).find(k => rMap[k] === 3)), highSuit: 4 };
         let pairs = Object.keys(rMap).filter(k => rMap[k] === 2).map(Number).sort((a, b) => b - a);
-        if (pairs.length >= 2) return { score: 2, highRank: pairs[0], highSuit: 4 };
-        if (pairs.length === 1) return { score: 1, highRank: pairs[0], highSuit: 4 };
-        return { score: 0, highRank: rVals[0], highSuit: suitValues[cards.find(c => rankValues[c.rank] === rVals[0]).suit] };
+        if (pairs.length >= 2) return { score: 2, name: "투 페어", highRank: pairs[0], highSuit: 4 };
+        if (pairs.length === 1) return { score: 1, name: "원 페어", highRank: pairs[0], highSuit: 4 };
+        return { score: 0, name: "하이 카드", highRank: rVals[0], highSuit: suitValues[cards.find(c => rankValues[c.rank] === rVals[0]).suit] };
     }
 
     function renderBoard() {
@@ -427,16 +426,28 @@
             if (currentGame === 'POKER') {
                 p.pokerRounds.forEach((cards, rIdx) => {
                     const isFolded = p.pokerFolds[rIdx];
+                    const roundCardText = cards.map(c => `${c.rank} ${c.suit}`).join(', ');
+                    const copyVal = `𝐑𝐎𝐔𝐍𝐃 ${rIdx+1} 𝐂𝐀𝐑𝐃 𝐎𝐏𝐄𝐍……. ${roundCardText}`;
+                    
                     content += `<div class="round-container ${isFolded ? 'folded' : ''}">
                         <div class="round-header"><span class="round-label">ROUND ${rIdx+1}</span>
                             <div class="bet-input-area">RAISE: <input type="number" class="bet-input" value="${p.pokerBets[rIdx]}" onchange="updateBet(${pIdx}, ${rIdx}, this.value)">
                             <label style="margin-left:10px;">FOLD <input type="checkbox" ${isFolded ? 'checked' : ''} onchange="toggleRoundFold(${pIdx}, ${rIdx})"></label></div>
-                        </div><div class="card-display">${(cards||[]).map(createCardHTML).join('')}</div></div>`;
+                        </div>
+                        <div class="card-display">${(cards||[]).map(createCardHTML).join('')}</div>`;
+                    
+                    if(cards.length > 0 && !isFolded) {
+                        content += `<div class="copy-section">
+                            <div class="result-text" id="p${pIdx}r${rIdx}">${copyVal}</div>
+                            <button class="copy-btn" onclick="copyText('p${pIdx}r${rIdx}')">복사</button>
+                        </div>`;
+                    }
+                    content += `</div>`;
                 });
             } else if (currentGame === 'HI-LO' && p.cards.length >= 2) {
                 const c1 = p.cards[0], c2 = p.cards[1], gv = (r) => (r==='A'?1:(['J','Q','K'].includes(r)?10:parseInt(r)));
                 let win = gv(c1.rank) === gv(c2.rank) ? "두 카드의 수가 동일하므로 베팅금을 반환합니다. 𝐏𝐔𝐒𝐇." : (gv(c1.rank) > gv(c2.rank) ? "𝐏𝐋𝐀𝐘𝐄𝐑 𝐖𝐈𝐍." : "𝐃𝐄𝐀𝐋𝐄𝐑 𝐖𝐈𝐍.");
-                content += `<div class="card-display">${createCardHTML(c1)}${createCardHTML(c2)}</div><div class="copy-section"><div class="result-text" id="h${pIdx}">𝐏𝐋𝐀𝐘𝐄𝐑: ${c1.rank} ${c1.suit}\n𝐃𝐄𝐀𝐋𝐄𝐑: ${c2.rank} ${c2.suit}\n${win}</div><button class="copy-btn" onclick="copyText('h${pIdx}')">복사</button></div>`;
+                content += `<div class="card-display">${createCardHTML(c1)}${createCardHTML(c2)}</div><div class="copy-section"><div class="result-text" id="h${pIdx}">𝐂𝐀𝐑𝐃 𝐎𝐏𝐄𝐍……. \n𝐏𝐋𝐀𝐘𝐄𝐑: ${c1.rank} ${c1.suit}\n𝐃𝐄𝐀𝐋𝐄𝐑: ${c2.rank} ${c2.suit}\n${win}</div><button class="copy-btn" onclick="copyText('h${pIdx}')">복사</button></div>`;
             } else if (currentGame === 'RED-DOG' && p.cards.length >= 3) {
                 const c1 = p.cards[0], c2 = p.cards[1], c3 = p.cards[2], gv = (r) => (r==='A'?1:(['J','Q','K'].includes(r)?10:parseInt(r))), diff = Math.abs(gv(c1.rank) - gv(c2.rank));
                 let res = `𝐂𝐀𝐑𝐃 𝐎𝐏𝐄𝐍……. ${c1.rank} ${c1.suit}, ${c2.rank} ${c2.suit}\n`;
