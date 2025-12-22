@@ -221,11 +221,15 @@
     }
 
     function clearTable() {
-        players.forEach(p => {
+        players.forEach((p, i) => {
             p.cards = [];
             p.pokerRounds = [[],[],[],[]];
             p.pokerFolds = [false, false, false, false];
             p.pokerBets = [0, 0, 0, 0];
+            // 오직 포커 게임일 때만 이름 초기화
+            if (currentGame === 'POKER') {
+                p.name = `PLAYER ${i + 1}`;
+            }
         });
         currentDeck = []; winnerId = null; pokerRoundIdx = -1; winnerTextMemory = "";
         saveState(); updateUI();
