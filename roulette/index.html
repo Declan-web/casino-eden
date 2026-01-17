@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>HELLO? - CASINO EDEN</title>
+    <style>
+        :root {
+            --main-red: #AD2A1B;
+            --dark-bg: #0a0a0a;
+            --panel-bg: #151515;
+            --accent-gold: #d4af37;
+            --text-active: #ffffff; 
+            --text-dim: #444;       
+        }
+
+        body { 
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; 
+            background-color: var(--dark-bg); 
+            color: #eee; 
+            margin: 0; 
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { 
+            max-width: 850px; 
+            width: 100%;
+            background: var(--panel-bg); 
+            padding: 60px 40px; 
+            border-radius: 40px; 
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            border: 1px solid rgba(173, 42, 27, 0.15);
+            text-align: center;
+        }
+
+        h1 { 
+            color: var(--main-red); 
+            text-transform: uppercase; 
+            letter-spacing: 12px; 
+            margin-bottom: 10px;
+            font-size: 2.8em;
+            font-weight: 900;
+        }
+
+        .subtitle {
+            color: #888;
+            letter-spacing: 4px;
+            font-size: 1em;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .slot-box {
+            width: 90px;
+            height: 130px;
+            background: #000;
+            border: 1px solid #222;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5em;
+            font-weight: bold;
+            color: var(--text-active);
+            transition: color 0.4s ease;
+        }
+
+        .slot-box.special { width: 160px; }
+
+        .spin-btn {
+            padding: 22px 100px;
+            background: var(--main-red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing: 4px;
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            background: #d63031;
+            box-shadow: 0 0 20px rgba(173, 42, 27, 0.4);
+        }
+
+        .spin-btn:disabled {
+            background: #222; color: #444; cursor: not-allowed;
+        }
+
+        .message-area { margin-top: 60px; min-height: 60px; }
+
+        .res-ment {
+            font-size: 1.4em;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: fadeIn 1.2s ease-in-out;
+        }
+
+        .ment-success { color: var(--accent-gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+        .ment-fail { color: #666; font-style: italic; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HELLO?</h1>
+    <div class="subtitle">CASINO EDEN: THE FOURTH STORY</div>
+
+    <div class="slot-machine">
+        <div id="slot1" class="slot-box">-</div>
+        <div id="slot2" class="slot-box">-</div>
+        <div id="slot3" class="slot-box">-</div>
+        <div id="slot4" class="slot-box">-</div>
+        <div id="slot5" class="slot-box special">-</div>
+    </div>
+
+    <button id="spinBtn" class="spin-btn" onclick="startSpin()">SPIN</button>
+    
+    <div class="message-area">
+        <div id="resMent" class="res-ment"></div>
+    </div>
+</div>
+
+<script>
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const targetLetters = ["E", "D", "E", "N"];
+    let isSpinning = false;
+
+    function startSpin() {
+        if (isSpinning) return;
+        
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('resMent').innerText = "";
+
+        const slots = [
+            document.getElementById('slot1'),
+            document.getElementById('slot2'),
+            document.getElementById('slot3'),
+            document.getElementById('slot4'),
+            document.getElementById('slot5')
+        ];
+
+        slots.forEach(s => s.style.color = "var(--text-active)");
+
+        const intervals = [];
+        slots.forEach((slot, index) => {
+            const interval = setInterval(() => {
+                if (index < 4) {
+                    slot.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
+                } else {
+                    slot.innerText = Math.random() > 0.5 ? "4" : "FAIL";
+                }
+            }, 60);
+            intervals.push(interval);
+        });
+
+        const finalResults = [];
+
+        slots.forEach((slot, index) => {
+            setTimeout(() => {
+                clearInterval(intervals[index]);
+
+                let finalVal;
+                if (index < 4) {
+                    finalVal = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    slot.style.color = (finalVal === targetLetters[index]) ? "var(--accent-gold)" : "var(--text-dim)";
+                } else {
+                    const luck = Math.floor(Math.random() * 100) + 1;
+                    finalVal = (luck <= 10) ? "4" : "FAIL";
+                    slot.style.color = (finalVal === "4") ? "var(--accent-gold)" : "var(--text-dim)";
+                }
+                
+                slot.innerText = finalVal;
+                finalResults[index] = finalVal;
+
+                if (index === 4) checkVictory(finalResults);
+            }, (index + 1) * 700);
+        });
+    }
+
+    function checkVictory(results) {
+        isSpinning = false;
+        document.getElementById('spinBtn').disabled = false;
+        const mentArea = document.getElementById('resMent');
+
+        // 승리 조건: 앞 4칸이 EDEN 이고 마지막 칸이 4일 때
+        const isEden = (results[0] === "E" && results[1] === "D" && results[2] === "E" && results[3] === "N");
+        const isFour = (results[4] === "4");
+
+        if (isEden && isFour) {
+            mentArea.innerText = "카지노 에덴, 네 번째 이야기가 당신을 기다립니다.";
+            mentArea.className = "res-ment ment-success";
+        } else {
+            mentArea.innerText = "우리⋯⋯ 다시 만날 수 있는 거지?";
+            mentArea.className = "res-ment ment-fail";
+        }
+    }
+</script>
+
+</body>
+</html>
