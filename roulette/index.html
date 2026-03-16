@@ -154,8 +154,10 @@
             document.getElementById('slot5')
         ];
 
+        // 슬롯 글자색 초기화
         slots.forEach(s => s.style.color = "var(--text-active)");
 
+        // 롤링 애니메이션 시작
         const intervals = [];
         slots.forEach((slot, index) => {
             const interval = setInterval(() => {
@@ -168,46 +170,33 @@
             intervals.push(interval);
         });
 
-        const finalResults = [];
-
+        // 결과 확정 로직 (무조건 당첨)
         slots.forEach((slot, index) => {
             setTimeout(() => {
                 clearInterval(intervals[index]);
 
                 let finalVal;
                 if (index < 4) {
-                    finalVal = alphabet[Math.floor(Math.random() * alphabet.length)];
-                    slot.style.color = (finalVal === targetLetters[index]) ? "var(--accent-gold)" : "var(--text-dim)";
+                    // 무조건 E, D, E, N 할당
+                    finalVal = targetLetters[index];
                 } else {
-                    const luck = Math.floor(Math.random() * 100) + 1;
-                    finalVal = (luck <= 10) ? "4" : "FAIL";
-                    slot.style.color = (finalVal === "4") ? "var(--accent-gold)" : "var(--text-dim)";
+                    // 마지막 칸 무조건 "4" 할당
+                    finalVal = "4";
                 }
                 
+                slot.style.color = "var(--accent-gold)"; // 당첨 색상 적용
                 slot.innerText = finalVal;
-                finalResults[index] = finalVal;
 
-                if (index === 4) checkVictory(finalResults);
+                // 마지막 슬롯까지 멈췄을 때 결과 메시지 출력
+                if (index === 4) {
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    const mentArea = document.getElementById('resMent');
+                    mentArea.innerText = "카지노 에덴, 네 번째 이야기가 당신을 기다립니다.";
+                    mentArea.className = "res-ment ment-success";
+                }
             }, (index + 1) * 700);
         });
-    }
-
-    function checkVictory(results) {
-        isSpinning = false;
-        document.getElementById('spinBtn').disabled = false;
-        const mentArea = document.getElementById('resMent');
-
-        // 승리 조건: 앞 4칸이 EDEN 이고 마지막 칸이 4일 때
-        const isEden = (results[0] === "E" && results[1] === "D" && results[2] === "E" && results[3] === "N");
-        const isFour = (results[4] === "4");
-
-        if (isEden && isFour) {
-            mentArea.innerText = "카지노 에덴, 네 번째 이야기가 당신을 기다립니다.";
-            mentArea.className = "res-ment ment-success";
-        } else {
-            mentArea.innerText = "우리⋯⋯ 다시 만날 수 있는 거지?";
-            mentArea.className = "res-ment ment-fail";
-        }
     }
 </script>
 
