@@ -98,7 +98,14 @@
             background: #222; color: #444; cursor: not-allowed;
         }
 
-        .message-area { margin-top: 60px; min-height: 60px; }
+        /* 메시지 영역 레이아웃 수정 */
+        .message-area { 
+            margin-top: 60px; 
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* 문구 사이의 여백 */
+        }
 
         .res-ment {
             font-size: 1.4em;
@@ -107,10 +114,19 @@
             animation: fadeIn 1.2s ease-in-out;
         }
 
-        .ment-success { color: var(--accent-gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
-        .ment-fail { color: #666; font-style: italic; }
+        /* 강조된 날짜 스타일 */
+        .open-date {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--text-active);
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            animation: fadeIn 2s ease-in-out;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .ment-success { color: var(--accent-gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -131,6 +147,7 @@
     
     <div class="message-area">
         <div id="resMent" class="res-ment"></div>
+        <div id="openDate" class="open-date"></div>
     </div>
 </div>
 
@@ -145,6 +162,7 @@
         isSpinning = true;
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('resMent').innerText = "";
+        document.getElementById('openDate').innerText = "";
 
         const slots = [
             document.getElementById('slot1'),
@@ -154,10 +172,8 @@
             document.getElementById('slot5')
         ];
 
-        // 슬롯 글자색 초기화
         slots.forEach(s => s.style.color = "var(--text-active)");
 
-        // 롤링 애니메이션 시작
         const intervals = [];
         slots.forEach((slot, index) => {
             const interval = setInterval(() => {
@@ -170,30 +186,32 @@
             intervals.push(interval);
         });
 
-        // 결과 확정 로직 (무조건 당첨)
         slots.forEach((slot, index) => {
             setTimeout(() => {
                 clearInterval(intervals[index]);
 
                 let finalVal;
                 if (index < 4) {
-                    // 무조건 E, D, E, N 할당
                     finalVal = targetLetters[index];
                 } else {
-                    // 마지막 칸 무조건 "4" 할당
                     finalVal = "4";
                 }
                 
-                slot.style.color = "var(--accent-gold)"; // 당첨 색상 적용
+                slot.style.color = "var(--accent-gold)";
                 slot.innerText = finalVal;
 
-                // 마지막 슬롯까지 멈췄을 때 결과 메시지 출력
                 if (index === 4) {
                     isSpinning = false;
                     document.getElementById('spinBtn').disabled = false;
+                    
+                    // 기존 당첨 문구
                     const mentArea = document.getElementById('resMent');
                     mentArea.innerText = "카지노 에덴, 네 번째 이야기가 당신을 기다립니다.";
                     mentArea.className = "res-ment ment-success";
+
+                    // 강조된 날짜 문구 추가
+                    const dateArea = document.getElementById('openDate');
+                    dateArea.innerText = "2026.3.26 OPEN";
                 }
             }, (index + 1) * 700);
         });
